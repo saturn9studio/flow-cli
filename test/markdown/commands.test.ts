@@ -7,12 +7,12 @@ import {
 } from "../../src/markdown/index.js";
 
 const select = (
-  scribe: ReturnType<typeof boot>,
+  flowEditor: ReturnType<typeof boot>,
   anchor: { paragraph: number; offset: number },
   head = anchor,
 ): void => {
-  scribe.editor.dispatch(
-    scribe.editor.createTransaction().setSelection({ anchor, head }).build(),
+  flowEditor.editor.dispatch(
+    flowEditor.editor.createTransaction().setSelection({ anchor, head }).build(),
   );
 };
 
@@ -21,12 +21,12 @@ describe("Flow CLI commands", () => {
     const registry = new CommandRegistry();
     const listener = vi.fn();
     registry.onUpdate(listener);
-    const scribe = boot({ content: "word", commandRegistry: registry });
+    const flowEditor = boot({ content: "word", commandRegistry: registry });
 
     expect(registry.getCommandData(flowCommandNames.undo)?.enabled).toBe(false);
-    select(scribe, { paragraph: 0, offset: 0 }, { paragraph: 0, offset: 4 });
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe("**word**");
+    select(flowEditor, { paragraph: 0, offset: 0 }, { paragraph: 0, offset: 4 });
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe("**word**");
     expect(registry.getCommandData(flowCommandNames.undo)?.enabled).toBe(true);
     expect(listener).toHaveBeenCalled();
   });
@@ -40,69 +40,69 @@ describe("Flow CLI commands", () => {
     [flowCommandNames.math, "$word$"],
     [flowCommandNames.highlight, "==word=="],
   ])("formats the word at a collapsed caret with %s", (command, expected) => {
-    const scribe = boot({ content: "word" });
-    select(scribe, { paragraph: 0, offset: 2 });
+    const flowEditor = boot({ content: "word" });
+    select(flowEditor, { paragraph: 0, offset: 2 });
 
-    expect(scribe.executeCommand(command)).toBe(true);
-    expect(scribe.getContent()).toBe(expected);
-    expect(scribe.editor.snapshot().selection.head.offset).toBe(
+    expect(flowEditor.executeCommand(command)).toBe(true);
+    expect(flowEditor.getContent()).toBe(expected);
+    expect(flowEditor.editor.snapshot().selection.head.offset).toBe(
       2 + (expected.length - 4) / 2,
     );
   });
 
   it("inserts empty markers on whitespace and in an empty paragraph", () => {
-    const scribe = boot({ content: "word next" });
-    select(scribe, { paragraph: 0, offset: 4 });
+    const flowEditor = boot({ content: "word next" });
+    select(flowEditor, { paragraph: 0, offset: 4 });
 
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe("word**** next");
-    expect(scribe.editor.snapshot().selection.head.offset).toBe(6);
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe("word**** next");
+    expect(flowEditor.editor.snapshot().selection.head.offset).toBe(6);
 
-    scribe.setContent("");
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe("****");
-    expect(scribe.editor.snapshot().selection.head.offset).toBe(2);
+    flowEditor.setContent("");
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe("****");
+    expect(flowEditor.editor.snapshot().selection.head.offset).toBe(2);
   });
 
   it("formats a word at its final boundary and toggles existing formatting", () => {
-    const scribe = boot({ content: "word" });
-    select(scribe, { paragraph: 0, offset: 4 });
+    const flowEditor = boot({ content: "word" });
+    select(flowEditor, { paragraph: 0, offset: 4 });
 
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe("**word**");
-    expect(scribe.editor.snapshot().selection.head.offset).toBe(6);
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe("**word**");
+    expect(flowEditor.editor.snapshot().selection.head.offset).toBe(6);
 
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe("word");
-    expect(scribe.editor.snapshot().selection.head.offset).toBe(4);
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe("word");
+    expect(flowEditor.editor.snapshot().selection.head.offset).toBe(4);
   });
 
   it.each([
     ["**word**", flowCommandNames.italic, "***word***"],
     ["~~word~~", flowCommandNames.underline, "~~~word~~~"],
   ])("combines overlapping markers in %s", (content, command, combined) => {
-    const scribe = boot({ content });
-    select(scribe, { paragraph: 0, offset: 4 });
+    const flowEditor = boot({ content });
+    select(flowEditor, { paragraph: 0, offset: 4 });
 
-    expect(scribe.executeCommand(command)).toBe(true);
-    expect(scribe.getContent()).toBe(combined);
-    expect(scribe.executeCommand(command)).toBe(true);
-    expect(scribe.getContent()).toBe(content);
+    expect(flowEditor.executeCommand(command)).toBe(true);
+    expect(flowEditor.getContent()).toBe(combined);
+    expect(flowEditor.executeCommand(command)).toBe(true);
+    expect(flowEditor.getContent()).toBe(content);
   });
 
   it("formats each selected paragraph with independent markers", () => {
-    const scribe = boot({ content: "Paragraph one\nParagraph two" });
+    const flowEditor = boot({ content: "Paragraph one\nParagraph two" });
     select(
-      scribe,
+      flowEditor,
       { paragraph: 0, offset: 10 },
       { paragraph: 1, offset: 4 },
     );
 
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe(
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe(
       "Paragraph **one**\n**Para**graph two",
     );
-    expect(scribe.editor.snapshot().selection).toEqual({
+    expect(flowEditor.editor.snapshot().selection).toEqual({
       anchor: { paragraph: 0, offset: 12 },
       head: { paragraph: 1, offset: 6 },
     });
@@ -117,26 +117,26 @@ describe("Flow CLI commands", () => {
     [flowCommandNames.math, "$"],
     [flowCommandNames.highlight, "=="],
   ])("toggles %s across paragraphs", (command, marker) => {
-    const scribe = boot({ content: "one\ntwo" });
-    select(scribe, { paragraph: 0, offset: 0 }, { paragraph: 1, offset: 3 });
+    const flowEditor = boot({ content: "one\ntwo" });
+    select(flowEditor, { paragraph: 0, offset: 0 }, { paragraph: 1, offset: 3 });
 
-    expect(scribe.executeCommand(command)).toBe(true);
-    expect(scribe.getContent()).toBe(
+    expect(flowEditor.executeCommand(command)).toBe(true);
+    expect(flowEditor.getContent()).toBe(
       `${marker}one${marker}\n${marker}two${marker}`,
     );
-    expect(scribe.executeCommand(command)).toBe(true);
-    expect(scribe.getContent()).toBe("one\ntwo");
+    expect(flowEditor.executeCommand(command)).toBe(true);
+    expect(flowEditor.getContent()).toBe("one\ntwo");
   });
 
   it("toggles formatting off for selected content inside its markers", () => {
     const registry = new CommandRegistry();
-    const scribe = boot({ content: "**bold**", commandRegistry: registry });
-    select(scribe, { paragraph: 0, offset: 2 }, { paragraph: 0, offset: 6 });
+    const flowEditor = boot({ content: "**bold**", commandRegistry: registry });
+    select(flowEditor, { paragraph: 0, offset: 2 }, { paragraph: 0, offset: 6 });
 
     expect(registry.getCommandData(flowCommandNames.bold)?.active).toBe(true);
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe("bold");
-    expect(scribe.editor.snapshot().selection).toEqual({
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe("bold");
+    expect(flowEditor.editor.snapshot().selection).toEqual({
       anchor: { paragraph: 0, offset: 0 },
       head: { paragraph: 0, offset: 4 },
     });
@@ -144,33 +144,33 @@ describe("Flow CLI commands", () => {
 
   it("toggles an enclosing formatted phrase off from a collapsed caret", () => {
     const registry = new CommandRegistry();
-    const scribe = boot({
+    const flowEditor = boot({
       content: "**bold phrase**",
       commandRegistry: registry,
     });
-    select(scribe, { paragraph: 0, offset: 4 });
+    select(flowEditor, { paragraph: 0, offset: 4 });
 
     expect(registry.getCommandData(flowCommandNames.bold)?.active).toBe(true);
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe("bold phrase");
-    expect(scribe.editor.snapshot().selection.head.offset).toBe(2);
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe("bold phrase");
+    expect(flowEditor.editor.snapshot().selection.head.offset).toBe(2);
   });
 
   it("uses the caret rather than adjacent formatting for collapsed state", () => {
     const registry = new CommandRegistry();
-    const scribe = boot({
+    const flowEditor = boot({
       content: "**bold**next",
       commandRegistry: registry,
     });
-    select(scribe, { paragraph: 0, offset: 10 });
+    select(flowEditor, { paragraph: 0, offset: 10 });
 
     expect(registry.getCommandData(flowCommandNames.bold)?.active).toBe(false);
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe("**boldnext**");
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe("**boldnext**");
   });
 
   it("merges mixed existing formatting within each selected paragraph", () => {
-    const scribe = boot({
+    const flowEditor = boot({
       content: [
         "This is **multiple**",
         "**paragraph** text **with selection**",
@@ -178,13 +178,13 @@ describe("Flow CLI commands", () => {
       ].join("\n"),
     });
     select(
-      scribe,
+      flowEditor,
       { paragraph: 0, offset: 8 },
       { paragraph: 2, offset: 32 },
     );
 
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe([
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe([
       "This is **multiple**",
       "**paragraph text with selection**",
       "**spanning multiple paragraphs** too",
@@ -192,28 +192,28 @@ describe("Flow CLI commands", () => {
   });
 
   it("toggles formatting off across fully covered paragraphs", () => {
-    const scribe = boot({ content: "**one**\n**two**" });
-    select(scribe, { paragraph: 0, offset: 2 }, { paragraph: 1, offset: 5 });
+    const flowEditor = boot({ content: "**one**\n**two**" });
+    select(flowEditor, { paragraph: 0, offset: 2 }, { paragraph: 1, offset: 5 });
 
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe("one\ntwo");
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe("one\ntwo");
   });
 
   it("excludes a paragraph when the selection ends at its start", () => {
-    const scribe = boot({ content: "one\ntwo" });
-    select(scribe, { paragraph: 0, offset: 0 }, { paragraph: 1, offset: 0 });
+    const flowEditor = boot({ content: "one\ntwo" });
+    select(flowEditor, { paragraph: 0, offset: 0 }, { paragraph: 1, offset: 0 });
 
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
-    expect(scribe.getContent()).toBe("**one**\ntwo");
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
+    expect(flowEditor.getContent()).toBe("**one**\ntwo");
   });
 
   it("preserves backward selections while formatting paragraphs", () => {
-    const scribe = boot({ content: "one\ntwo" });
-    select(scribe, { paragraph: 1, offset: 3 }, { paragraph: 0, offset: 0 });
+    const flowEditor = boot({ content: "one\ntwo" });
+    select(flowEditor, { paragraph: 1, offset: 3 }, { paragraph: 0, offset: 0 });
 
-    expect(scribe.executeCommand(flowCommandNames.italic)).toBe(true);
-    expect(scribe.getContent()).toBe("*one*\n*two*");
-    expect(scribe.editor.snapshot().selection).toEqual({
+    expect(flowEditor.executeCommand(flowCommandNames.italic)).toBe(true);
+    expect(flowEditor.getContent()).toBe("*one*\n*two*");
+    expect(flowEditor.editor.snapshot().selection).toEqual({
       anchor: { paragraph: 1, offset: 4 },
       head: { paragraph: 0, offset: 1 },
     });
@@ -246,59 +246,59 @@ describe("Flow CLI commands", () => {
   });
 
   it("transforms all selected paragraphs and preserves history", () => {
-    const scribe = boot({ content: "one\ntwo" });
-    select(scribe, { paragraph: 0, offset: 0 }, { paragraph: 1, offset: 3 });
-    expect(scribe.executeCommand(flowCommandNames.bulletList)).toBe(true);
-    expect(scribe.getContent()).toBe("- one\n- two");
-    expect(scribe.executeCommand(flowCommandNames.bulletList)).toBe(true);
-    expect(scribe.getContent()).toBe("one\ntwo");
-    expect(scribe.executeCommand(flowCommandNames.undo)).toBe(true);
-    expect(scribe.getContent()).toBe("- one\n- two");
-    expect(scribe.executeCommand(flowCommandNames.redo)).toBe(true);
-    expect(scribe.getContent()).toBe("one\ntwo");
+    const flowEditor = boot({ content: "one\ntwo" });
+    select(flowEditor, { paragraph: 0, offset: 0 }, { paragraph: 1, offset: 3 });
+    expect(flowEditor.executeCommand(flowCommandNames.bulletList)).toBe(true);
+    expect(flowEditor.getContent()).toBe("- one\n- two");
+    expect(flowEditor.executeCommand(flowCommandNames.bulletList)).toBe(true);
+    expect(flowEditor.getContent()).toBe("one\ntwo");
+    expect(flowEditor.executeCommand(flowCommandNames.undo)).toBe(true);
+    expect(flowEditor.getContent()).toBe("- one\n- two");
+    expect(flowEditor.executeCommand(flowCommandNames.redo)).toBe(true);
+    expect(flowEditor.getContent()).toBe("one\ntwo");
   });
 
   it("supports headings, code blocks, separators, and tables", () => {
-    const scribe = boot({ content: "title" });
-    select(scribe, { paragraph: 0, offset: 0 }, { paragraph: 0, offset: 5 });
-    expect(scribe.executeCommand(flowCommandNames.heading2)).toBe(true);
-    expect(scribe.getContent()).toBe("## title");
+    const flowEditor = boot({ content: "title" });
+    select(flowEditor, { paragraph: 0, offset: 0 }, { paragraph: 0, offset: 5 });
+    expect(flowEditor.executeCommand(flowCommandNames.heading2)).toBe(true);
+    expect(flowEditor.getContent()).toBe("## title");
 
-    select(scribe, { paragraph: 0, offset: 8 });
-    expect(scribe.executeCommand(flowCommandNames.codeBlock)).toBe(true);
-    expect(scribe.getContent()).toContain("```\n\n```");
-    expect(scribe.executeCommand(flowCommandNames.horizontalRule)).toBe(true);
-    expect(scribe.getContent()).toContain("---");
-    expect(scribe.insertTable({ rows: 1, columns: 1 })).toBe(true);
-    expect(scribe.getContent()).toContain("| Header 1 |");
+    select(flowEditor, { paragraph: 0, offset: 8 });
+    expect(flowEditor.executeCommand(flowCommandNames.codeBlock)).toBe(true);
+    expect(flowEditor.getContent()).toContain("```\n\n```");
+    expect(flowEditor.executeCommand(flowCommandNames.horizontalRule)).toBe(true);
+    expect(flowEditor.getContent()).toContain("---");
+    expect(flowEditor.insertTable({ rows: 1, columns: 1 })).toBe(true);
+    expect(flowEditor.getContent()).toContain("| Header 1 |");
   });
 
   it("supports math blocks", () => {
-    const scribe = boot({ content: "E = mc^2" });
-    select(scribe, { paragraph: 0, offset: 0 }, { paragraph: 0, offset: 8 });
+    const flowEditor = boot({ content: "E = mc^2" });
+    select(flowEditor, { paragraph: 0, offset: 0 }, { paragraph: 0, offset: 8 });
 
-    expect(scribe.executeCommand(flowCommandNames.mathBlock)).toBe(true);
-    expect(scribe.getContent()).toBe("$$\nE = mc^2\n$$");
+    expect(flowEditor.executeCommand(flowCommandNames.mathBlock)).toBe(true);
+    expect(flowEditor.getContent()).toBe("$$\nE = mc^2\n$$");
 
-    select(scribe, { paragraph: 0, offset: 0 }, { paragraph: 2, offset: 2 });
-    expect(scribe.executeCommand(flowCommandNames.mathBlock)).toBe(true);
-    expect(scribe.getContent()).toBe("E = mc^2");
+    select(flowEditor, { paragraph: 0, offset: 0 }, { paragraph: 2, offset: 2 });
+    expect(flowEditor.executeCommand(flowCommandNames.mathBlock)).toBe(true);
+    expect(flowEditor.getContent()).toBe("E = mc^2");
 
-    scribe.setContent("");
-    select(scribe, { paragraph: 0, offset: 0 });
-    expect(scribe.executeCommand(flowCommandNames.mathBlock)).toBe(true);
-    expect(scribe.getContent()).toBe("$$\n\n$$");
-    expect(scribe.editor.snapshot().selection.head).toEqual({
+    flowEditor.setContent("");
+    select(flowEditor, { paragraph: 0, offset: 0 });
+    expect(flowEditor.executeCommand(flowCommandNames.mathBlock)).toBe(true);
+    expect(flowEditor.getContent()).toBe("$$\n\n$$");
+    expect(flowEditor.editor.snapshot().selection.head).toEqual({
       paragraph: 1,
       offset: 0,
     });
   });
 
   it("inserts a three-column table with one body row by default", () => {
-    const scribe = boot({ content: "" });
+    const flowEditor = boot({ content: "" });
 
-    expect(scribe.executeCommand(flowCommandNames.table)).toBe(true);
-    expect(scribe.getContent()).toBe([
+    expect(flowEditor.executeCommand(flowCommandNames.table)).toBe(true);
+    expect(flowEditor.getContent()).toBe([
       "| Header 1 | Header 2 | Header 3 |",
       "| --- | --- | --- |",
       "|  |  |  |",
@@ -312,8 +312,8 @@ describe("Flow CLI commands", () => {
       label: "Custom Bold",
       run,
     };
-    const scribe = boot({ content: "text", commands: [command] });
-    expect(scribe.executeCommand(flowCommandNames.bold)).toBe(true);
+    const flowEditor = boot({ content: "text", commands: [command] });
+    expect(flowEditor.executeCommand(flowCommandNames.bold)).toBe(true);
     expect(run).toHaveBeenCalledOnce();
 
     const readOnly = boot({ content: "text", readOnly: true });
@@ -322,14 +322,14 @@ describe("Flow CLI commands", () => {
   });
 
   it("executes commands registered after boot", () => {
-    const scribe = boot();
+    const flowEditor = boot();
     const run = vi.fn(() => true);
-    scribe.commandRegistry.register({
+    flowEditor.commandRegistry.register({
       id: "custom.runtime",
       label: "Runtime command",
       run,
     });
-    expect(scribe.executeCommand("custom.runtime")).toBe(true);
+    expect(flowEditor.executeCommand("custom.runtime")).toBe(true);
     expect(run).toHaveBeenCalledOnce();
   });
 });

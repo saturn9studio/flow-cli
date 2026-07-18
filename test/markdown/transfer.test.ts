@@ -50,9 +50,9 @@ describe("Flow CLI transfer helpers", () => {
   });
 
   it("creates a typed payload for the selected canonical source", () => {
-    const scribe = boot({ content: "before **bold** after" });
-    scribe.editor.dispatch(
-      scribe.editor
+    const flowEditor = boot({ content: "before **bold** after" });
+    flowEditor.editor.dispatch(
+      flowEditor.editor
         .createTransaction()
         .setSelection({
           anchor: { paragraph: 0, offset: 7 },
@@ -60,7 +60,7 @@ describe("Flow CLI transfer helpers", () => {
         })
         .build(),
     );
-    expect(selectionTransferPayload(scribe.editor)).toEqual({
+    expect(selectionTransferPayload(flowEditor.editor)).toEqual({
       plainText: "bold",
       markdown: "**bold**",
       html: "<p><strong>bold</strong></p>\n",
@@ -68,16 +68,16 @@ describe("Flow CLI transfer helpers", () => {
   });
 
   it("applies transferred source transactionally and honors read-only", () => {
-    const scribe = boot({ content: "Text" });
-    expect(applyTransfer(scribe.editor, { html: "<strong>Bold</strong>" }))
+    const flowEditor = boot({ content: "Text" });
+    expect(applyTransfer(flowEditor.editor, { html: "<strong>Bold</strong>" }))
       .toBe(true);
-    expect(scribe.getContent()).toBe("**Bold**Text");
-    expect(scribe.editor.execute("editor.undo")).toBe(true);
-    expect(scribe.getContent()).toBe("Text");
+    expect(flowEditor.getContent()).toBe("**Bold**Text");
+    expect(flowEditor.editor.execute("editor.undo")).toBe(true);
+    expect(flowEditor.getContent()).toBe("Text");
 
-    scribe.setReadOnly(true);
-    expect(applyTransfer(scribe.editor, { plainText: "No" })).toBe(false);
-    expect(scribe.getContent()).toBe("Text");
+    flowEditor.setReadOnly(true);
+    expect(applyTransfer(flowEditor.editor, { plainText: "No" })).toBe(false);
+    expect(flowEditor.getContent()).toBe("Text");
   });
 
   it("describes clipboard boundaries as host effects", () => {

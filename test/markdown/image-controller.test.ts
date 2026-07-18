@@ -102,12 +102,12 @@ describe("ImageController", () => {
     const pending = deferred();
     const controller = new ImageController(() => pending.promise);
     const onChange = vi.fn();
-    const scribe = boot({
+    const flowEditor = boot({
       content: "![cover](cover.png)",
       onChange,
       markdown: { imageWidgets: { controller } },
     });
-    expect(scribe.editor.output().widgets[0]?.props).toMatchObject({
+    expect(flowEditor.editor.output().widgets[0]?.props).toMatchObject({
       status: "loading",
       alt: "cover",
       src: "cover.png",
@@ -116,19 +116,19 @@ describe("ImageController", () => {
     await pending.promise;
     await Promise.resolve();
     expect(onChange).toHaveBeenCalled();
-    expect(scribe.editor.output().widgets).toHaveLength(1);
-    expect(scribe.editor.output().widgets[0]?.props).toHaveProperty("image");
+    expect(flowEditor.editor.output().widgets).toHaveLength(1);
+    expect(flowEditor.editor.output().widgets[0]?.props).toHaveProperty("image");
   });
 
   it("renders compact unavailable and failed fallbacks", async () => {
     const unavailable = new ImageController(() => undefined);
-    const scribe = boot({
+    const flowEditor = boot({
       content: "![cover](cover.png)",
       markdown: { imageWidgets: { controller: unavailable } },
     });
-    scribe.editor.output();
+    flowEditor.editor.output();
     await Promise.resolve();
-    const unavailableWidget = scribe.editor.output().widgets[0]!;
+    const unavailableWidget = flowEditor.editor.output().widgets[0]!;
     expect(unavailableWidget.props).toMatchObject({ status: "unavailable" });
     expect(unavailableWidget.render.render({
       props: unavailableWidget.props,
@@ -165,14 +165,14 @@ describe("ImageController", () => {
       .mockReturnValueOnce(undefined)
       .mockReturnValueOnce(loadedImage);
     const controller = new ImageController(loader);
-    const scribe = boot({
+    const flowEditor = boot({
       content: "![cover](cover.png)",
       markdown: { imageWidgets: { controller } },
     });
-    scribe.editor.output();
+    flowEditor.editor.output();
     await Promise.resolve();
     await Promise.resolve();
-    const widget = scribe.editor.output().widgets[0]!;
+    const widget = flowEditor.editor.output().widgets[0]!;
 
     expect(widget.render.handleInput?.({
       key: widget.key,

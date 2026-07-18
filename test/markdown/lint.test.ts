@@ -18,23 +18,23 @@ describe("Flow CLI lint controller", () => {
     const provider = vi.fn(
       () => new Promise<readonly LintResult[]>((resolve) => pending.push(resolve)),
     );
-    const scribe = boot({ content: "first" });
-    const controller = createLintController(scribe.editor, provider, {
+    const flowEditor = boot({ content: "first" });
+    const controller = createLintController(flowEditor.editor, provider, {
       debounceMs: 10,
     });
 
     controller.run();
     await vi.advanceTimersByTimeAsync(10);
-    scribe.editor.handleInput({ kind: "text", text: "x" });
+    flowEditor.editor.handleInput({ kind: "text", text: "x" });
     controller.run();
     await vi.advanceTimersByTimeAsync(10);
     pending[0]?.([{ from: 0, to: 1, message: "Stale" }]);
     await Promise.resolve();
-    expect(scribe.editor.getPluginState(lintDecorationsPluginId)).toEqual([]);
+    expect(flowEditor.editor.getPluginState(lintDecorationsPluginId)).toEqual([]);
 
     pending[1]?.([{ from: 0, to: 1, message: "Current" }]);
     await Promise.resolve();
-    expect(scribe.editor.getPluginState(lintDecorationsPluginId)).toEqual([
+    expect(flowEditor.editor.getPluginState(lintDecorationsPluginId)).toEqual([
       { from: 0, to: 1, message: "Current" },
     ]);
     controller.dispose();
@@ -44,9 +44,9 @@ describe("Flow CLI lint controller", () => {
     vi.useFakeTimers();
     const error = new Error("lint failed");
     const onError = vi.fn();
-    const scribe = boot({ content: "text" });
+    const flowEditor = boot({ content: "text" });
     const controller = createLintController(
-      scribe.editor,
+      flowEditor.editor,
       () => Promise.reject(error),
       { debounceMs: 0, onError },
     );
@@ -54,16 +54,16 @@ describe("Flow CLI lint controller", () => {
     await vi.runAllTimersAsync();
     expect(onError).toHaveBeenCalledWith(error);
     controller.clear();
-    expect(scribe.editor.getPluginState(lintDecorationsPluginId)).toEqual([]);
+    expect(flowEditor.editor.getPluginState(lintDecorationsPluginId)).toEqual([]);
   });
 
   it("applies suggestions through ordinary editor history", () => {
-    const scribe = boot({ content: "teh word" });
+    const flowEditor = boot({ content: "teh word" });
     expect(
-      applyLintSuggestion(scribe.editor, { from: 0, to: 3 }, "the"),
+      applyLintSuggestion(flowEditor.editor, { from: 0, to: 3 }, "the"),
     ).toBe(true);
-    expect(scribe.getContent()).toBe("the word");
-    expect(scribe.editor.execute("editor.undo")).toBe(true);
-    expect(scribe.getContent()).toBe("teh word");
+    expect(flowEditor.getContent()).toBe("the word");
+    expect(flowEditor.editor.execute("editor.undo")).toBe(true);
+    expect(flowEditor.getContent()).toBe("teh word");
   });
 });

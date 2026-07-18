@@ -109,7 +109,7 @@ describe("terminal image approximation", () => {
 
   it("renders inactive Markdown images as inline widgets and reveals active source", () => {
     const content = "before ![gradient](demo.png) after";
-    const scribe = boot({
+    const flowEditor = boot({
       content,
       markdown: {
         imageWidgets: {
@@ -119,19 +119,19 @@ describe("terminal image approximation", () => {
         },
       },
     });
-    setCaret(scribe.editor, content.length);
+    setCaret(flowEditor.editor, content.length);
 
-    expect(scribe.editor.output().widgets).toHaveLength(1);
-    const rendered = scribe.editor.frame(80, 2).rows[0]?.cells
+    expect(flowEditor.editor.output().widgets).toHaveLength(1);
+    const rendered = flowEditor.editor.frame(80, 2).rows[0]?.cells
       .filter((cell) => !cell.continuation)
       .map((cell) => cell.text)
       .join("");
     expect(rendered).toBe("before ▀▀ after");
-    expect(scribe.getContent()).toBe(content);
+    expect(flowEditor.getContent()).toBe(content);
 
-    setCaret(scribe.editor, content.indexOf("gradient"));
-    expect(scribe.editor.output().widgets).toEqual([]);
-    expect(scribe.editor.frame(80, 2).rows[0]?.cells
+    setCaret(flowEditor.editor, content.indexOf("gradient"));
+    expect(flowEditor.editor.output().widgets).toEqual([]);
+    expect(flowEditor.editor.frame(80, 2).rows[0]?.cells
       .filter((cell) => !cell.continuation)
       .map((cell) => cell.text)
       .join(""),
@@ -150,7 +150,7 @@ describe("terminal image approximation", () => {
       ]).flat()),
     );
     const content = "![portrait](portrait.png)\nafter";
-    const scribe = boot({
+    const flowEditor = boot({
       content,
       markdown: {
         mode: "focus",
@@ -161,14 +161,14 @@ describe("terminal image approximation", () => {
         },
       },
     });
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: { paragraph: 1, offset: 5 },
         head: { paragraph: 1, offset: 5 },
       }).build(),
     );
 
-    const widget = scribe.editor.output().widgets[0];
+    const widget = flowEditor.editor.output().widgets[0];
     expect(widget?.placement).toBe("block");
     const inactive = widget?.render.render({
       props: widget.props,
@@ -207,12 +207,12 @@ describe("terminal image approximation", () => {
       readOnly: false,
       focused: true,
     }).graphic).toBeDefined();
-    expect(scribe.getContent()).toBe(content);
+    expect(flowEditor.getContent()).toBe(content);
   });
 
   it("focuses block images during vertical navigation without entering source", () => {
     const content = "before\nInline image: ![cover](cover.png)\nafter";
-    const scribe = boot({
+    const flowEditor = boot({
       content,
       markdown: {
         imageWidgets: {
@@ -221,42 +221,42 @@ describe("terminal image approximation", () => {
         },
       },
     });
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: { paragraph: 1, offset: "Inline image: ".length },
         head: { paragraph: 1, offset: "Inline image: ".length },
       }).build(),
     );
 
-    expect(scribe.editor.handleInput({
+    expect(flowEditor.editor.handleInput({
       kind: "key",
       key: "ArrowDown",
     })).toBe(true);
-    expect(scribe.editor.focusedWidgetKey).toBe(
+    expect(flowEditor.editor.focusedWidgetKey).toBe(
       "scribecli.markdown:image-21",
     );
-    expect(scribe.editor.handleInput({
+    expect(flowEditor.editor.handleInput({
       kind: "key",
       key: "ArrowDown",
     })).toBe(true);
-    expect(scribe.editor.focusedWidgetKey).toBeNull();
-    expect(scribe.editor.snapshot().selection).toEqual({
+    expect(flowEditor.editor.focusedWidgetKey).toBeNull();
+    expect(flowEditor.editor.snapshot().selection).toEqual({
       anchor: { paragraph: 2, offset: 0 },
       head: { paragraph: 2, offset: 0 },
     });
-    expect(scribe.editor.handleInput({
+    expect(flowEditor.editor.handleInput({
       kind: "key",
       key: "ArrowUp",
     })).toBe(true);
-    expect(scribe.editor.focusedWidgetKey).toBe(
+    expect(flowEditor.editor.focusedWidgetKey).toBe(
       "scribecli.markdown:image-21",
     );
-    expect(scribe.editor.handleInput({
+    expect(flowEditor.editor.handleInput({
       kind: "key",
       key: "ArrowUp",
     })).toBe(true);
-    expect(scribe.editor.focusedWidgetKey).toBeNull();
-    expect(scribe.editor.snapshot().selection).toEqual({
+    expect(flowEditor.editor.focusedWidgetKey).toBeNull();
+    expect(flowEditor.editor.snapshot().selection).toEqual({
       anchor: { paragraph: 1, offset: "Inline image: ".length },
       head: { paragraph: 1, offset: "Inline image: ".length },
     });
@@ -271,7 +271,7 @@ describe("terminal image approximation", () => {
 
   it("does not create image widgets for Markdown-looking fenced code", () => {
     const content = "```md\n![gradient](demo.png)\n```\noutside";
-    const scribe = boot({
+    const flowEditor = boot({
       content,
       blockWidgets: false,
       markdown: {
@@ -281,19 +281,19 @@ describe("terminal image approximation", () => {
         },
       },
     });
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: { paragraph: 3, offset: 7 },
         head: { paragraph: 3, offset: 7 },
       }).build(),
     );
 
-    expect(scribe.editor.output().widgets).toEqual([]);
+    expect(flowEditor.editor.output().widgets).toEqual([]);
   });
 
   it("supports image source handoff, deletion, and undo", () => {
     const content = "![cover](cover.png)\nafter";
-    const scribe = boot({
+    const flowEditor = boot({
       content,
       markdown: {
         imageWidgets: {
@@ -301,30 +301,30 @@ describe("terminal image approximation", () => {
         },
       },
     });
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: { paragraph: 1, offset: 5 },
         head: { paragraph: 1, offset: 5 },
       }).build(),
     );
-    expect(scribe.editor.focusWidget("scribecli.markdown:image-0")).toBe(true);
-    expect(scribe.editor.handleInput({
+    expect(flowEditor.editor.focusWidget("scribecli.markdown:image-0")).toBe(true);
+    expect(flowEditor.editor.handleInput({
       kind: "key",
       key: "Enter",
     })).toBe(true);
-    expect(scribe.editor.output().widgets).toEqual([]);
-    expect(scribe.editor.snapshot().selection.head).toEqual({
+    expect(flowEditor.editor.output().widgets).toEqual([]);
+    expect(flowEditor.editor.snapshot().selection.head).toEqual({
       paragraph: 0,
       offset: "![cover](cover.png)".length,
     });
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: { paragraph: 1, offset: 5 },
         head: { paragraph: 1, offset: 5 },
       }).build(),
     );
-    expect(scribe.editor.focusWidget("scribecli.markdown:image-0")).toBe(true);
-    expect(scribe.editor.handleInput({
+    expect(flowEditor.editor.focusWidget("scribecli.markdown:image-0")).toBe(true);
+    expect(flowEditor.editor.handleInput({
       kind: "key",
       key: "Delete",
       ctrl: false,
@@ -332,21 +332,21 @@ describe("terminal image approximation", () => {
       shift: false,
       meta: false,
     })).toBe(true);
-    expect(scribe.getContent()).toBe("\nafter");
-    expect(scribe.editor.execute("editor.undo")).toBe(true);
-    expect(scribe.getContent()).toBe(content);
+    expect(flowEditor.getContent()).toBe("\nafter");
+    expect(flowEditor.editor.execute("editor.undo")).toBe(true);
+    expect(flowEditor.getContent()).toBe(content);
   });
 
   it("keeps image widgets disabled in source mode", () => {
-    const scribe = boot({
+    const flowEditor = boot({
       content: "![cover](cover.png)",
       markdown: {
         mode: "source",
         imageWidgets: { resolve: () => testImage },
       },
     });
-    expect(scribe.editor.output().widgets).toEqual([]);
-    expect(scribe.editor.frame(80, 2).rows[0]?.cells
+    expect(flowEditor.editor.output().widgets).toEqual([]);
+    expect(flowEditor.editor.frame(80, 2).rows[0]?.cells
       .filter((cell) => !cell.continuation)
       .map((cell) => cell.text)
       .join("")).toBe("![cover](cover.png)");
@@ -363,7 +363,7 @@ describe("terminal image approximation", () => {
       "[cover]: cover.png \"Cover\"",
     ].join("\n");
     const resolved: string[] = [];
-    const scribe = boot({
+    const flowEditor = boot({
       content,
       markdown: {
         imageWidgets: {
@@ -375,13 +375,13 @@ describe("terminal image approximation", () => {
         },
       },
     });
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: { paragraph: 6, offset: 26 },
         head: { paragraph: 6, offset: 26 },
       }).build(),
     );
-    expect(scribe.editor.output().widgets).toHaveLength(3);
+    expect(flowEditor.editor.output().widgets).toHaveLength(3);
     expect(findMarkdownImages(content).map(({ from, to }) => [from, to]))
       .toEqual([
         [

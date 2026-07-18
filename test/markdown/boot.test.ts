@@ -22,43 +22,43 @@ describe("Flow CLI boot", () => {
   it("preserves content and composes custom plugin factories", () => {
     const onApply = vi.fn();
     const content = "# Draft\n\nText";
-    const scribe = boot({
+    const flowEditor = boot({
       content,
       plugins: [() => testPlugin(onApply)],
     });
 
-    expect(scribe.getContent()).toBe(content);
-    expect(isMarkdownSyntaxSnapshot(scribe.editor.snapshot().syntax)).toBe(true);
+    expect(flowEditor.getContent()).toBe(content);
+    expect(isMarkdownSyntaxSnapshot(flowEditor.editor.snapshot().syntax)).toBe(true);
 
-    scribe.editor.handleInput({ kind: "text", text: "A" });
+    flowEditor.editor.handleInput({ kind: "text", text: "A" });
     expect(onApply).toHaveBeenCalledTimes(1);
-    expect(scribe.getContent()).toBe("A# Draft\n\nText");
+    expect(flowEditor.getContent()).toBe("A# Draft\n\nText");
   });
 
   it("supports a plain-text configuration without Markdown", () => {
-    const scribe = boot({ content: "plain", markdown: false });
-    expect(scribe.editor.snapshot().syntax.kind).toBe("none");
-    expect(scribe.editor.output().decorations).toEqual([]);
+    const flowEditor = boot({ content: "plain", markdown: false });
+    expect(flowEditor.editor.snapshot().syntax.kind).toBe("none");
+    expect(flowEditor.editor.output().decorations).toEqual([]);
   });
 
   it("honors read-only editing", () => {
-    const scribe = boot({ content: "unchanged", readOnly: true });
-    expect(scribe.editor.handleInput({ kind: "text", text: "x" })).toBe(true);
-    expect(scribe.getContent()).toBe("unchanged");
+    const flowEditor = boot({ content: "unchanged", readOnly: true });
+    expect(flowEditor.editor.handleInput({ kind: "text", text: "x" })).toBe(true);
+    expect(flowEditor.getContent()).toBe("unchanged");
   });
 
   it("preserves Markdown through replacement, deletion, undo, and redo", () => {
-    const scribe = boot({ content: "# Draft\n\n**bold** text" });
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    const flowEditor = boot({ content: "# Draft\n\n**bold** text" });
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: { paragraph: 2, offset: 2 },
         head: { paragraph: 2, offset: 6 },
       }).build(),
     );
-    scribe.editor.handleInput({ kind: "text", text: "strong" });
-    expect(scribe.getContent()).toBe("# Draft\n\n**strong** text");
+    flowEditor.editor.handleInput({ kind: "text", text: "strong" });
+    expect(flowEditor.getContent()).toBe("# Draft\n\n**strong** text");
 
-    scribe.editor.handleInput({
+    flowEditor.editor.handleInput({
       kind: "key",
       key: "Backspace",
       ctrl: false,
@@ -66,10 +66,10 @@ describe("Flow CLI boot", () => {
       shift: false,
       meta: false,
     });
-    expect(scribe.getContent()).toBe("# Draft\n\n**stron** text");
-    expect(scribe.editor.execute("editor.undo")).toBe(true);
-    expect(scribe.getContent()).toBe("# Draft\n\n**strong** text");
-    expect(scribe.editor.execute("editor.redo")).toBe(true);
-    expect(scribe.getContent()).toBe("# Draft\n\n**stron** text");
+    expect(flowEditor.getContent()).toBe("# Draft\n\n**stron** text");
+    expect(flowEditor.editor.execute("editor.undo")).toBe(true);
+    expect(flowEditor.getContent()).toBe("# Draft\n\n**strong** text");
+    expect(flowEditor.editor.execute("editor.redo")).toBe(true);
+    expect(flowEditor.getContent()).toBe("# Draft\n\n**stron** text");
   });
 });
