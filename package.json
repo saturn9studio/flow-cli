@@ -1,0 +1,57 @@
+{
+  "name": "@saturn9/flow-cli",
+  "version": "0.1.0",
+  "description": "A keyboard-first Markdown editor for the terminal",
+  "license": "MIT",
+  "author": "Saturn9 LLC",
+  "homepage": "https://github.com/saturn9studio/flow-cli#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saturn9studio/flow-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/saturn9studio/flow-cli/issues"
+  },
+  "keywords": [
+    "terminal",
+    "markdown",
+    "editor",
+    "cli",
+    "writing"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./dist/app/index.js",
+  "types": "./dist/app/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "flow-cli": "./dist/app/cli.js"
+  },
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "start": "npm run build && node dist/app/cli.js",
+    "test": "vitest run",
+    "verify": "npm run clean && npm run test && npm run build"
+  },
+  "dependencies": {
+    "@saturn9/markoffset": "0.2.1",
+    "highlight.js": "^11.11.1",
+    "jimp": "^1.6.1",
+    "katex": "^0.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.0.0"
+  }
+}
