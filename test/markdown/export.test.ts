@@ -8,6 +8,9 @@ import {
   renderMarkdownToHtml,
 } from "../../src/markdown/index.js";
 
+const normalizeLineEndings = (text: string): string =>
+  text.replace(/\r\n?/gu, "\n");
+
 describe("Flow CLI string exports", () => {
   it("exports canonical Markdown without transformation", () => {
     const markdown = "# Title\n\nText";
@@ -131,10 +134,10 @@ describe("Flow CLI string exports", () => {
   });
 
   it("keeps the compatibility fixture canonical across editor and exports", () => {
-    const markdown = readFileSync(
+    const markdown = normalizeLineEndings(readFileSync(
       new URL("./fixtures/compatibility.md", import.meta.url),
       "utf8",
-    );
+    ));
     const flowEditor = boot({ content: markdown });
     expect(flowEditor.getContent()).toBe(markdown);
     const html = renderMarkdownToHtml(markdown, { fragment: true });

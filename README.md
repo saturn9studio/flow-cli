@@ -6,6 +6,8 @@ Flow CLI is built for writing, not just editing files. It keeps Markdown as the
 source of truth while presenting headings, lists, blockquotes, code, tables,
 links, and images as a quiet, readable document.
 
+![Flow CLI editing a Markdown demo document](docs/assets/flow-cli-demo.svg)
+
 It is a real terminal editor rather than a browser view or a wrapper around
 another editor: input handling, grapheme-aware layout, widgets, selection, and
 incremental ANSI rendering are all implemented for the terminal.
@@ -34,8 +36,8 @@ npm start -- document.md
 ```
 
 Pass an existing Markdown file or a path for a new one. Starting without a path
-creates an untitled draft in `~/Documents`. Documents are autosaved while you
-write.
+creates an untitled draft in the current directory. Documents are autosaved while
+you write.
 
 ## Essential shortcuts
 

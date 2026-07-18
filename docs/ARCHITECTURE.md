@@ -21,7 +21,7 @@ terminal-editor focused and avoid app policy.
 
 An explicit path opens that Markdown file, or creates a buffer bound to that
 path when it does not exist. Starting without a path creates an untitled identity
-in `~/Documents`; the file is written by the first autosave.
+in the current working directory; the file is written by the first autosave.
 
 Markdown source remains canonical. Editor changes update the document session
 and always schedule an atomic autosave. The session compares current content

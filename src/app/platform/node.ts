@@ -47,7 +47,7 @@ const missingFile = (error: unknown): boolean =>
 
 export class NodeFileService implements FileService {
   constructor(
-    private readonly documentsDirectory = path.join(homedir(), "Documents"),
+    private readonly draftDirectory = process.cwd(),
   ) {}
 
   async read(filePath: string): Promise<OpenedTextFile | null> {
@@ -100,7 +100,7 @@ export class NodeFileService implements FileService {
     for (let index = 1; ; index += 1) {
       const suffix = index === 1 ? "" : ` ${index}`;
       const candidate = path.join(
-        this.documentsDirectory,
+        this.draftDirectory,
         `Untitled${suffix}.md`,
       );
       if ((await this.version(candidate)) === null) return candidate;

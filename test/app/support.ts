@@ -129,7 +129,7 @@ export class MemoryFileService implements FileService {
   }
 
   async suggestUntitledPath(): Promise<string> {
-    return "/Documents/Untitled.md";
+    return "/Untitled.md";
   }
 
   async readDirectory(directoryPath: string): Promise<readonly DirectoryEntry[]> {
