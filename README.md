@@ -6,7 +6,7 @@ Flow CLI is built for writing, not just editing files. It keeps Markdown as the
 source of truth while presenting headings, lists, blockquotes, code, tables,
 links, and images as a quiet, readable document.
 
-![Flow CLI editing a Markdown demo document](docs/assets/flow-cli-demo.svg)
+![Flow CLI editing a Markdown demo document](docs/assets/flow-cli-demo.png)
 
 It is a real terminal editor rather than a browser view or a wrapper around
 another editor: input handling, grapheme-aware layout, widgets, selection, and
