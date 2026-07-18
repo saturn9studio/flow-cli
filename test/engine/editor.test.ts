@@ -65,6 +65,39 @@ describe("TerminalEditor", () => {
     ]);
   });
 
+  it("resets history and plugin state when replacing content", () => {
+    const id = new PluginId<number>("content-length");
+    const init = vi.fn(({ content }) => content.length);
+    const apply = vi.fn(({ content }) => content.length);
+    const editor = new TerminalEditor({
+      content: "old",
+      plugins: [{
+        id,
+        init,
+        apply,
+      }],
+    });
+
+    editor.handleInput({ kind: "text", text: "!" });
+    expect(editor.snapshot().canUndo).toBe(true);
+    expect(editor.getPluginState(id)).toBe(4);
+
+    editor.setContent("new words");
+
+    expect(editor.snapshot()).toMatchObject({
+      content: "new words",
+      canUndo: false,
+      canRedo: false,
+    });
+    expect(editor.snapshot().selection).toEqual({
+      anchor: { paragraph: 0, offset: 0 },
+      head: { paragraph: 0, offset: 0 },
+    });
+    expect(editor.getPluginState(id)).toBe(9);
+    expect(init).toHaveBeenCalledTimes(2);
+    expect(apply).toHaveBeenCalledOnce();
+  });
+
   it("caches unchanged layouts across frame and viewport queries", () => {
     const decorations = vi.fn(() => []);
     const plugin: EditorPlugin<null> = {
