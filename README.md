@@ -26,18 +26,28 @@ incremental ANSI rendering are all implemented for the terminal.
   character-cell fallback elsewhere
 - HTML and plain-text export
 
-## Try it
+## Install
 
-Flow CLI requires Node.js 18 or newer.
+On macOS and Linux, install with Homebrew:
 
 ```bash
-npm install
-npm start -- document.md
+brew install saturn9studio/flow-cli/flow-cli
 ```
 
-Pass an existing Markdown file or a path for a new one. Starting without a path
-creates an untitled draft in the current directory. Documents are autosaved while
-you write.
+On Windows, install with WinGet:
+
+```powershell
+winget install --id Saturn9.FlowCLI --exact
+```
+
+Then open or create a Markdown document:
+
+```bash
+flow-cli document.md
+```
+
+Starting without a path creates an untitled draft in the current directory.
+Documents are autosaved while you write.
 
 ## Essential shortcuts
 
