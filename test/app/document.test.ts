@@ -42,7 +42,7 @@ describe("FlowCLI document session", () => {
     const files = new MemoryFileService();
     const document = await openDocumentSession(files);
 
-    expect(document.path).toBe("/Documents/Untitled.md");
+    expect(document.path).toBe("/Untitled.md");
     expect(document.isTemporary).toBe(true);
     expect(files.writes).toHaveLength(0);
 

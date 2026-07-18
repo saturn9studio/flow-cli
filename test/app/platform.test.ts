@@ -49,4 +49,16 @@ describe("FlowCLI Node platform", () => {
       await rm(directory, { recursive: true, force: true });
     }
   });
+
+  it("suggests untitled drafts in the configured launch directory", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "flowcli-drafts-"));
+    try {
+      await writeFile(path.join(directory, "Untitled.md"), "Existing");
+
+      await expect(new NodeFileService(directory).suggestUntitledPath()).resolves
+        .toBe(path.join(directory, "Untitled 2.md"));
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
 });
