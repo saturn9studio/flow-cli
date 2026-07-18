@@ -236,49 +236,49 @@ describe("Flow CLI block surfaces", () => {
 
   it("moves vertical navigation into code widgets from either direction", () => {
     const content = "before\n```ts\nconst value = 1;\n```\nafter";
-    const scribe = boot({ content });
+    const flowEditor = boot({ content });
     const placeCaret = (paragraph: number, offset: number) => {
       const position = { paragraph, offset };
-      scribe.editor.dispatch(
-        scribe.editor.createTransaction().setSelection({
+      flowEditor.editor.dispatch(
+        flowEditor.editor.createTransaction().setSelection({
           anchor: position,
           head: position,
         }).build(),
       );
     };
-    const frameText = () => scribe.editor.frame(80, 10).rows
+    const frameText = () => flowEditor.editor.frame(80, 10).rows
       .flatMap((row) => row.cells)
       .map((cell) => cell.text)
       .join("");
 
     placeCaret(0, "before".length);
-    expect(scribe.editor.handleInput(key("ArrowDown"))).toBe(true);
-    expect(scribe.editor.frame(80, 10).cursor.visible).toBe(false);
+    expect(flowEditor.editor.handleInput(key("ArrowDown"))).toBe(true);
+    expect(flowEditor.editor.frame(80, 10).cursor.visible).toBe(false);
     expect(frameText()).toContain("code · ts");
 
-    scribe.editor.focusEditor({ paragraph: 4, offset: 0 });
-    expect(scribe.editor.handleInput(key("ArrowUp"))).toBe(true);
-    expect(scribe.editor.frame(80, 10).cursor.visible).toBe(false);
+    flowEditor.editor.focusEditor({ paragraph: 4, offset: 0 });
+    expect(flowEditor.editor.handleInput(key("ArrowUp"))).toBe(true);
+    expect(flowEditor.editor.frame(80, 10).cursor.visible).toBe(false);
     expect(frameText()).toContain("code · ts");
   });
 
   it("toggles task widgets transactionally", () => {
-    const scribe = boot({ content: "- [ ] task" });
-    expect(scribe.editor.focusWidget("scribecli.task:2")).toBe(true);
-    expect(scribe.editor.handleInput(key(" "))).toBe(true);
-    expect(scribe.getContent()).toBe("- [x] task");
-    expect(scribe.editor.execute("editor.undo")).toBe(true);
-    expect(scribe.getContent()).toBe("- [ ] task");
+    const flowEditor = boot({ content: "- [ ] task" });
+    expect(flowEditor.editor.focusWidget("scribecli.task:2")).toBe(true);
+    expect(flowEditor.editor.handleInput(key(" "))).toBe(true);
+    expect(flowEditor.getContent()).toBe("- [x] task");
+    expect(flowEditor.editor.execute("editor.undo")).toBe(true);
+    expect(flowEditor.getContent()).toBe("- [ ] task");
   });
 
   it("hands code widgets back to exact raw source", () => {
     const content = "```js\nrun();\n```";
-    const scribe = boot({ content });
-    expect(scribe.editor.focusWidget("scribecli.code:0")).toBe(true);
-    expect(scribe.editor.handleInput(key("Enter"))).toBe(true);
-    expect(scribe.getContent()).toBe(content);
-    expect(scribe.editor.output().widgets).toEqual([]);
-    expect(scribe.editor.snapshot().selection.head).toEqual({
+    const flowEditor = boot({ content });
+    expect(flowEditor.editor.focusWidget("scribecli.code:0")).toBe(true);
+    expect(flowEditor.editor.handleInput(key("Enter"))).toBe(true);
+    expect(flowEditor.getContent()).toBe(content);
+    expect(flowEditor.editor.output().widgets).toEqual([]);
+    expect(flowEditor.editor.snapshot().selection.head).toEqual({
       paragraph: 2,
       offset: 3,
     });
@@ -286,53 +286,53 @@ describe("Flow CLI block surfaces", () => {
 
   it("hands table previews back to exact raw source", () => {
     const content = "| A | B |\n| --- | --- |\n| 1 | 2 |";
-    const scribe = boot({ content });
-    expect(scribe.editor.focusWidget("scribecli.table:0")).toBe(true);
-    expect(scribe.editor.handleInput(key("Enter"))).toBe(true);
-    expect(scribe.getContent()).toBe(content);
-    expect(scribe.editor.output().widgets).toEqual([]);
+    const flowEditor = boot({ content });
+    expect(flowEditor.editor.focusWidget("scribecli.table:0")).toBe(true);
+    expect(flowEditor.editor.handleInput(key("Enter"))).toBe(true);
+    expect(flowEditor.getContent()).toBe(content);
+    expect(flowEditor.editor.output().widgets).toEqual([]);
   });
 
   it("keeps table source stable while adding a row below it", () => {
     const table = "| A | B |\n| --- | --- |\n| 1 | 2 |";
-    const scribe = boot({ content: `before\n${table}\n` });
+    const flowEditor = boot({ content: `before\n${table}\n` });
     const caret = { paragraph: 4, offset: 0 };
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: caret,
         head: caret,
       }).build(),
     );
 
-    expect(scribe.editor.output().widgets).toEqual([]);
+    expect(flowEditor.editor.output().widgets).toEqual([]);
     for (const character of "| 3 | 4 |") {
-      scribe.editor.handleInput({ kind: "text", text: character });
-      expect(scribe.editor.output().widgets).toEqual([]);
+      flowEditor.editor.handleInput({ kind: "text", text: character });
+      expect(flowEditor.editor.output().widgets).toEqual([]);
     }
-    expect(scribe.getContent()).toBe(`before\n${table}\n| 3 | 4 |`);
+    expect(flowEditor.getContent()).toBe(`before\n${table}\n| 3 | 4 |`);
 
     const before = { paragraph: 0, offset: 0 };
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: before,
         head: before,
       }).build(),
     );
-    expect(scribe.editor.output().widgets.map((widget) => widget.key)).toEqual([
+    expect(flowEditor.editor.output().widgets.map((widget) => widget.key)).toEqual([
       "scribecli.table:7",
     ]);
   });
 
   it("supports runtime source, focus, read, and edit policies", () => {
     const content = "# One.\n\nParagraph two.";
-    const scribe = boot({ content });
-    scribe.setPresentationMode("source");
-    expect(scribe.editor.output().decorations.some(
+    const flowEditor = boot({ content });
+    flowEditor.setPresentationMode("source");
+    expect(flowEditor.editor.output().decorations.some(
       (decoration) => decoration.kind === "conceal",
     )).toBe(false);
 
-    scribe.setPresentationMode("focus");
-    expect(scribe.editor.output().decorations).toContainEqual({
+    flowEditor.setPresentationMode("focus");
+    expect(flowEditor.editor.output().decorations).toContainEqual({
       kind: "inline",
       from: 6,
       to: content.length,
@@ -340,19 +340,19 @@ describe("Flow CLI block surfaces", () => {
     });
 
     const caret = { paragraph: 2, offset: 4 };
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: caret,
         head: caret,
       }).build(),
     );
-    expect(scribe.editor.output().decorations).toContainEqual({
+    expect(flowEditor.editor.output().decorations).toContainEqual({
       kind: "inline",
       from: 0,
       to: 6,
       style: { role: "focusInactive", dim: true },
     });
-    expect(scribe.editor.output().decorations.some(
+    expect(flowEditor.editor.output().decorations.some(
       (decoration) =>
         decoration.kind === "inline" &&
         decoration.style.role === "focusInactive" &&
@@ -360,27 +360,27 @@ describe("Flow CLI block surfaces", () => {
         decoration.to > 12,
     )).toBe(false);
 
-    scribe.setPresentationMode("read");
-    expect(scribe.editor.snapshot().readOnly).toBe(true);
-    scribe.setPresentationMode("edit");
-    expect(scribe.editor.snapshot().readOnly).toBe(false);
+    flowEditor.setPresentationMode("read");
+    expect(flowEditor.editor.snapshot().readOnly).toBe(true);
+    flowEditor.setPresentationMode("edit");
+    expect(flowEditor.editor.snapshot().readOnly).toBe(false);
   });
 
   it("keeps only the active sentence unmuted in Focus mode", () => {
     const content = "One. Two here. Three.";
-    const scribe = boot({
+    const flowEditor = boot({
       content,
       markdown: { mode: "focus" },
     });
     const caret = { paragraph: 0, offset: 6 };
-    scribe.editor.dispatch(
-      scribe.editor.createTransaction().setSelection({
+    flowEditor.editor.dispatch(
+      flowEditor.editor.createTransaction().setSelection({
         anchor: caret,
         head: caret,
       }).build(),
     );
 
-    expect(scribe.editor.output().decorations).toEqual(
+    expect(flowEditor.editor.output().decorations).toEqual(
       expect.arrayContaining([
         {
           kind: "inline",
@@ -396,7 +396,7 @@ describe("Flow CLI block surfaces", () => {
         },
       ]),
     );
-    expect(scribe.editor.output().decorations.some(
+    expect(flowEditor.editor.output().decorations.some(
       (decoration) =>
         decoration.kind === "inline" &&
         decoration.style.role === "focusInactive" &&
@@ -408,12 +408,12 @@ describe("Flow CLI block surfaces", () => {
   it("emits typed link activation effects without opening URLs", () => {
     const onLinkActivate = vi.fn();
     const content = "[Saturn](https://saturn9.studio)";
-    const scribe = boot({
+    const flowEditor = boot({
       content,
       markdown: { onLinkActivate },
     });
-    scribe.editor.dispatch(
-      scribe.editor
+    flowEditor.editor.dispatch(
+      flowEditor.editor
         .createTransaction()
         .setSelection({
           anchor: { paragraph: 0, offset: 3 },
@@ -421,7 +421,7 @@ describe("Flow CLI block surfaces", () => {
         })
         .build(),
     );
-    expect(scribe.editor.handleInput(key("Enter", { ctrl: true }))).toBe(true);
+    expect(flowEditor.editor.handleInput(key("Enter", { ctrl: true }))).toBe(true);
     expect(onLinkActivate).toHaveBeenCalledWith({
       type: "activateLink",
       url: "https://saturn9.studio",
@@ -432,9 +432,9 @@ describe("Flow CLI block surfaces", () => {
 
   it("keeps unsupported fenced content as editable source", () => {
     const content = "```unknown\nnot closed";
-    const scribe = boot({ content });
-    expect(scribe.editor.output().widgets).toEqual([]);
-    expect(scribe.editor.snapshot().syntax).toEqual(
+    const flowEditor = boot({ content });
+    expect(flowEditor.editor.output().widgets).toEqual([]);
+    expect(flowEditor.editor.snapshot().syntax).toEqual(
       expect.objectContaining({
         kind: "scribecli-markdown",
         source: content,

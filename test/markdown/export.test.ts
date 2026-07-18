@@ -135,8 +135,8 @@ describe("Flow CLI string exports", () => {
       new URL("./fixtures/compatibility.md", import.meta.url),
       "utf8",
     );
-    const scribe = boot({ content: markdown });
-    expect(scribe.getContent()).toBe(markdown);
+    const flowEditor = boot({ content: markdown });
+    expect(flowEditor.getContent()).toBe(markdown);
     const html = renderMarkdownToHtml(markdown, { fragment: true });
     expect(html).toContain("<table>");
     expect(html).toContain('<code class="language-ts">');

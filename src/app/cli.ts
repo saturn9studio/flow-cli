@@ -5,7 +5,7 @@ import { createFlowCliApp } from "./app.js";
 import { helpText, parseArguments } from "./args.js";
 import { createNodePlatform } from "./platform/node.js";
 
-const version = "0.1.0";
+const version = process.env.FLOW_CLI_VERSION ?? "0.1.0";
 
 const main = async (): Promise<void> => {
   const arguments_ = parseArguments(process.argv.slice(2));

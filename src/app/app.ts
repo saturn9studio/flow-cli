@@ -319,7 +319,7 @@ const menuSections: readonly MenuSection[] = [
 ];
 
 export class FlowCliApp implements TerminalSurface {
-  private readonly scribe: FlowCliEditor;
+  private readonly markdownEditor: FlowCliEditor;
   private readonly imageController: ImageController;
   private readonly listeners = new Set<() => void>();
   private wordCount = 0;
@@ -354,7 +354,7 @@ export class FlowCliApp implements TerminalSurface {
         await this.platform.assets.readImage(src, this.document.path),
       )
     );
-    this.scribe = boot({
+    this.markdownEditor = boot({
       content: document.content,
       placeholder: "Start writing...",
       readOnly: false,
@@ -426,7 +426,7 @@ export class FlowCliApp implements TerminalSurface {
       this.menu = null;
       this.scrollbarDragging = false;
     }
-    this.scribe.setPresentationMode(mode);
+    this.markdownEditor.setPresentationMode(mode);
     this.message = `${mode[0]?.toUpperCase()}${mode.slice(1)} mode`;
     this.emit();
   }
@@ -441,7 +441,7 @@ export class FlowCliApp implements TerminalSurface {
       this.message = "Find is unavailable in Focus mode";
     } else {
       this.overlay = { kind: "find", query: "" };
-      this.scribe.executeFind({ action: "clear" });
+      this.markdownEditor.executeFind({ action: "clear" });
     }
     this.emit();
   }
@@ -464,9 +464,9 @@ export class FlowCliApp implements TerminalSurface {
     ) {
       return;
     }
-    const focusedWidgetKey = this.scribe.editor.focusedWidgetKey;
+    const focusedWidgetKey = this.markdownEditor.editor.focusedWidgetKey;
     if (focusedWidgetKey) {
-      const image = this.scribe.executeImage({ action: "check" });
+      const image = this.markdownEditor.executeImage({ action: "check" });
       if (typeof image === "object" && image.isImage) {
         if (this.contextualEditSuppressed !== focusedWidgetKey) {
           this.overlay = {
@@ -479,7 +479,7 @@ export class FlowCliApp implements TerminalSurface {
         return;
       }
     }
-    const link = this.scribe.executeLink({ action: "check" });
+    const link = this.markdownEditor.executeLink({ action: "check" });
     if (typeof link === "object" && link.isLink) {
       const target = `link:${link.from}:${link.to}`;
       if (this.contextualEditSuppressed !== target) {
@@ -555,7 +555,7 @@ export class FlowCliApp implements TerminalSurface {
 
   copy(cut = false): Promise<void> {
     this.queue(async () => {
-      const snapshot = this.scribe.editor.snapshot();
+      const snapshot = this.markdownEditor.editor.snapshot();
       const selected = textInRange(
         snapshot.doc,
         normalizeRange(snapshot.selection),
@@ -567,7 +567,7 @@ export class FlowCliApp implements TerminalSurface {
       }
       try {
         await this.platform.clipboard.writeText(selected);
-        if (cut) this.scribe.editor.execute(editorCommandNames.deleteBackward);
+        if (cut) this.markdownEditor.editor.execute(editorCommandNames.deleteBackward);
         this.message = cut ? "Cut selection" : "Copied selection";
       } catch (error) {
         this.message = `Clipboard failed: ${errorMessage(error)}`;
@@ -581,7 +581,7 @@ export class FlowCliApp implements TerminalSurface {
     this.queue(async () => {
       try {
         const text = await this.platform.clipboard.readText();
-        this.scribe.editor.handleInput({ kind: "paste", text });
+        this.markdownEditor.editor.handleInput({ kind: "paste", text });
         this.message = "Pasted";
       } catch (error) {
         this.message = `Clipboard failed: ${errorMessage(error)}`;
@@ -626,7 +626,7 @@ export class FlowCliApp implements TerminalSurface {
       try {
         await this.document.reload();
         await this.platform.recovery.clear(this.document.path);
-        this.scribe.setContent(this.document.content);
+        this.markdownEditor.setContent(this.document.content);
         this.overlay = null;
         this.message = `Reloaded ${this.document.displayName}`;
       } catch (error) {
@@ -673,7 +673,7 @@ export class FlowCliApp implements TerminalSurface {
       topPadding,
     } = shell;
     const editorFrame = contentHeight > 0
-      ? this.scribe.editor.frame(geometry.contentWidth, contentHeight)
+      ? this.markdownEditor.editor.frame(geometry.contentWidth, contentHeight)
       : {
           width: geometry.contentWidth,
           height: 0,
@@ -681,7 +681,7 @@ export class FlowCliApp implements TerminalSurface {
           graphics: [],
           cursor: { row: 0, column: 0, visible: false },
         };
-    const scroll = this.scribe.editor.scrollState({
+    const scroll = this.markdownEditor.editor.scrollState({
       width: geometry.contentWidth,
       height: Math.max(1, contentHeight),
     });
@@ -887,7 +887,7 @@ export class FlowCliApp implements TerminalSurface {
     return this.withContextualEditRequest(
       event.kind === "key" &&
         (event.key === "ArrowUp" || event.key === "ArrowDown"),
-      () => this.scribe.editor.handleInput(event, {
+      () => this.markdownEditor.editor.handleInput(event, {
         width: shell.geometry.contentWidth,
         height: Math.max(1, shell.contentHeight),
       }),
@@ -904,7 +904,7 @@ export class FlowCliApp implements TerminalSurface {
     this.destroyed = true;
     this.clearPersistenceTimers();
     this.imageController.dispose();
-    this.scribe.destroy();
+    this.markdownEditor.destroy();
     this.listeners.clear();
   }
 
@@ -926,7 +926,7 @@ export class FlowCliApp implements TerminalSurface {
       this.overlay = null;
       const shell = this.editorShell(viewport.width, viewport.height);
       this.withContextualEditRequest(true, () =>
-        this.scribe.editor.handleInput(event, {
+        this.markdownEditor.editor.handleInput(event, {
           width: shell.geometry.contentWidth,
           height: Math.max(1, shell.contentHeight),
         })
@@ -1026,7 +1026,7 @@ export class FlowCliApp implements TerminalSurface {
     if (event.kind === "mouse" || event.kind === "resize") return true;
     if (event.kind === "key" && event.key === "Escape") {
       if (overlay.kind === "find") {
-        this.scribe.executeFind({ action: "clear" });
+        this.markdownEditor.executeFind({ action: "clear" });
       } else if (overlay.kind === "settings") {
         this.restoreSettingsPreview();
       }
@@ -1278,7 +1278,7 @@ export class FlowCliApp implements TerminalSurface {
     } else if (overlay.kind === "recovery") {
       if (event.key === "r") {
         this.document.updateContent(overlay.snapshot.content);
-        this.scribe.setContent(overlay.snapshot.content);
+        this.markdownEditor.setContent(overlay.snapshot.content);
         this.overlay = null;
         this.message = "Recovered unsaved work";
         this.schedulePersistence();
@@ -1349,7 +1349,7 @@ export class FlowCliApp implements TerminalSurface {
       if (append !== null) overlay.query += append;
       if (backspace) overlay.query = removeLastGrapheme(overlay.query);
       if (append !== null || backspace) {
-        const result = this.scribe.executeFind({
+        const result = this.markdownEditor.executeFind({
           action: "find",
           searchText: overlay.query,
         });
@@ -1357,7 +1357,7 @@ export class FlowCliApp implements TerminalSurface {
           ? "No matches"
           : `${result.currentMatchIndex + 1} of ${result.totalMatches}`;
       } else if (enter) {
-        const result = this.scribe.executeFind({ action: "next" });
+        const result = this.markdownEditor.executeFind({ action: "next" });
         this.message = result.totalMatches === 0
           ? "No matches"
           : `${result.currentMatchIndex + 1} of ${result.totalMatches}`;
@@ -1378,7 +1378,7 @@ export class FlowCliApp implements TerminalSurface {
         overlay.replacement = removeLastGrapheme(overlay.replacement);
       }
       if (enter || (event.kind === "key" && event.ctrl && event.key === "a")) {
-        const result = this.scribe.executeReplace({
+        const result = this.markdownEditor.executeReplace({
           action:
             event.kind === "key" && event.ctrl && event.key === "a"
               ? "replaceAll"
@@ -1398,7 +1398,7 @@ export class FlowCliApp implements TerminalSurface {
         if (overlay.contextualTarget) {
           this.contextualEditSuppressed = overlay.contextualTarget;
         }
-        this.scribe.executeLink({
+        this.markdownEditor.executeLink({
           action: "apply",
           text: overlay.text,
           url: overlay.url,
@@ -1423,7 +1423,7 @@ export class FlowCliApp implements TerminalSurface {
         if (overlay.contextualTarget) {
           this.contextualEditSuppressed = overlay.contextualTarget;
         }
-        this.scribe.executeImage({
+        this.markdownEditor.executeImage({
           action: "apply",
           src: overlay.source,
           alt: overlay.alt,
@@ -1547,7 +1547,7 @@ export class FlowCliApp implements TerminalSurface {
         undefined,
         this.mode !== "read",
         () => {
-          const link = this.scribe.executeLink({ action: "check" });
+          const link = this.markdownEditor.executeLink({ action: "check" });
           if (typeof link === "object") {
             this.overlay = { kind: "link", text: link.text, url: link.url };
           }
@@ -1559,7 +1559,7 @@ export class FlowCliApp implements TerminalSurface {
         undefined,
         this.mode !== "read",
         () => {
-          const image = this.scribe.executeImage({ action: "check" });
+          const image = this.markdownEditor.executeImage({ action: "check" });
           this.overlay = {
             kind: "imageSource",
             source: typeof image === "object" ? image.src : "",
@@ -1597,10 +1597,10 @@ export class FlowCliApp implements TerminalSurface {
         if (this.requestExit()) this.exitHandler();
       }),
     ];
-    const scribeItems = [
-      ...this.scribe.commandRegistry.getSerializedCommandData().values(),
-    ].map((command) => this.scribePaletteItem(command));
-    return [...appItems, ...scribeItems];
+    const formattingItems = [
+      ...this.markdownEditor.commandRegistry.getSerializedCommandData().values(),
+    ].map((command) => this.commandPaletteItem(command));
+    return [...appItems, ...formattingItems];
   }
 
   private appItem(
@@ -1614,7 +1614,7 @@ export class FlowCliApp implements TerminalSurface {
     return { id, label, accelerator, enabled, run, checked };
   }
 
-  private scribePaletteItem(command: CommandData): PaletteItem {
+  private commandPaletteItem(command: CommandData): PaletteItem {
     return {
       id: command.id,
       label: command.label,
@@ -1622,7 +1622,7 @@ export class FlowCliApp implements TerminalSurface {
       enabled: command.enabled,
       checked: command.active,
       run: () => {
-        if (this.scribe.executeCommand(command.id)) {
+        if (this.markdownEditor.executeCommand(command.id)) {
           this.message = command.label;
         }
       },
@@ -1790,7 +1790,7 @@ export class FlowCliApp implements TerminalSurface {
       if (event.action === "move") {
         const denominator = Math.max(1, shell.contentHeight - 1);
         const row = Math.max(0, Math.min(shell.contentHeight - 1, contentRow));
-        this.scribe.editor.scrollToFraction(row / denominator, {
+        this.markdownEditor.editor.scrollToFraction(row / denominator, {
           width: shell.geometry.contentWidth,
           height: Math.max(1, shell.contentHeight),
         });
@@ -1806,7 +1806,7 @@ export class FlowCliApp implements TerminalSurface {
       contentRow < shell.contentHeight
     ) {
       if (event.action === "wheel") {
-        this.scribe.editor.scrollBy(
+        this.markdownEditor.editor.scrollBy(
           event.button === "wheelUp" ? -3 : event.button === "wheelDown" ? 3 : 0,
           {
             width: shell.geometry.contentWidth,
@@ -1824,7 +1824,7 @@ export class FlowCliApp implements TerminalSurface {
         (event.button === "left" || this.scrollbarDragging)
       ) {
         const denominator = Math.max(1, shell.contentHeight - 1);
-        this.scribe.editor.scrollToFraction(contentRow / denominator, {
+        this.markdownEditor.editor.scrollToFraction(contentRow / denominator, {
           width: shell.geometry.contentWidth,
           height: Math.max(1, shell.contentHeight),
         });
@@ -1842,7 +1842,7 @@ export class FlowCliApp implements TerminalSurface {
     const contextualClick =
       event.action === "press" && event.button === "right";
     this.withContextualEditRequest(contextualClick, () =>
-      this.scribe.editor.handleInput(
+      this.markdownEditor.editor.handleInput(
         {
           ...event,
           button: contextualClick ? "left" : event.button,
@@ -2560,7 +2560,7 @@ export class FlowCliApp implements TerminalSurface {
         await this.platform.recovery.clear(previousPath);
         const next = await openDocumentSession(this.platform.files, path);
         this.currentDocument = next;
-        this.scribe.setContent(next.content);
+        this.markdownEditor.setContent(next.content);
         this.overlay = null;
         this.message = path
           ? `Opened ${next.displayName}`

@@ -27,59 +27,59 @@ const renderedRows = (editor: ReturnType<typeof boot>["editor"]): string[] =>
 
 describe("Markdown presentation", () => {
   it("conceals inactive strong markers and reveals the complete active construct", () => {
-    const scribe = boot({ content: "**bold** plain" });
-    setCaret(scribe.editor, 0, 14);
+    const flowEditor = boot({ content: "**bold** plain" });
+    setCaret(flowEditor.editor, 0, 14);
 
-    expect(presentation(scribe.editor.output().decorations)).toEqual([
+    expect(presentation(flowEditor.editor.output().decorations)).toEqual([
       { kind: "conceal", from: 0, to: 2 },
       { kind: "conceal", from: 6, to: 8 },
     ]);
 
-    setCaret(scribe.editor, 0, 4);
-    expect(presentation(scribe.editor.output().decorations)).toEqual([]);
+    setCaret(flowEditor.editor, 0, 4);
+    expect(presentation(flowEditor.editor.output().decorations)).toEqual([]);
   });
 
   it("renders headings, list bullets, links, quotes, and separators source-safely", () => {
     const content = "# Heading\n- item\n[link](https://example.com)\n> quote\n---";
-    const scribe = boot({ content });
-    setCaret(scribe.editor, 2, 4);
+    const flowEditor = boot({ content });
+    setCaret(flowEditor.editor, 2, 4);
 
-    const rows = renderedRows(scribe.editor).join("\n");
+    const rows = renderedRows(flowEditor.editor).join("\n");
     expect(rows).toContain("Heading");
     expect(rows).toContain("• item");
     expect(rows).toContain("[link](https://example.com)");
     expect(rows).toContain("│ quote");
     expect(rows).toContain("────────");
-    const frame = scribe.editor.frame(80, 12);
+    const frame = flowEditor.editor.frame(80, 12);
     expect(frame.rows[1]?.cells.find((cell) => cell.text === "•")?.style.role)
       .toBe("markdownListMarker");
     expect(frame.rows[3]?.cells[0]?.style.role).toBe("markdownQuoteMarker");
     expect(frame.rows[3]?.cells.find((cell) => cell.text === "q")?.style.role)
       .toBe("markdownQuote");
-    expect(scribe.getContent()).toBe(content);
+    expect(flowEditor.getContent()).toBe(content);
   });
 
   it("styles source without concealment in source mode", () => {
-    const scribe = boot({
+    const flowEditor = boot({
       content: "# **Heading**",
       markdown: { mode: "source" },
     });
-    setCaret(scribe.editor, 0, 13);
+    setCaret(flowEditor.editor, 0, 13);
 
-    expect(presentation(scribe.editor.output().decorations)).toEqual([]);
-    expect(renderedRows(scribe.editor).join("\n")).toContain("# **Heading**");
+    expect(presentation(flowEditor.editor.output().decorations)).toEqual([]);
+    expect(renderedRows(flowEditor.editor).join("\n")).toContain("# **Heading**");
   });
 
   it("preserves blockquote backgrounds and nested markers in every mode", () => {
     for (const mode of ["edit", "read", "source"] as const) {
-      const scribe = boot({
+      const flowEditor = boot({
         content: "> > nested",
         markdown: { mode },
       });
 
-      setCaret(scribe.editor, 0, 0);
+      setCaret(flowEditor.editor, 0, 0);
 
-      const row = scribe.editor.frame(80, 2).rows[0]!;
+      const row = flowEditor.editor.frame(80, 2).rows[0]!;
       expect(row.backgroundRole).toBe("markdownQuote");
       expect(row.cells.every((cell) =>
         cell.style.backgroundRole === "markdownQuote"
@@ -89,24 +89,24 @@ describe("Markdown presentation", () => {
           cell.style.role === "markdownQuoteMarker"
         )).toHaveLength(2);
       }
-      scribe.destroy();
+      flowEditor.destroy();
     }
   });
 
   it("preserves the blockquote background on an empty quote's space", () => {
     for (const mode of ["edit", "read", "source"] as const) {
-      const scribe = boot({
+      const flowEditor = boot({
         content: "> ",
         markdown: { mode },
       });
-      setCaret(scribe.editor, 0, 2);
+      setCaret(flowEditor.editor, 0, 2);
 
-      const row = scribe.editor.frame(80, 2).rows[0]!;
+      const row = flowEditor.editor.frame(80, 2).rows[0]!;
       expect(row.cells.find((cell) => cell.text === " ")?.style).toMatchObject({
         role: "markdownQuote",
         backgroundRole: "markdownQuote",
       });
-      scribe.destroy();
+      flowEditor.destroy();
     }
   });
 
@@ -115,11 +115,11 @@ describe("Markdown presentation", () => {
       flowCliDarkTheme.roles.markdownQuote?.background,
     );
 
-    const scribe = boot({
+    const flowEditor = boot({
       content: "plain\n`inline`\n```ts\nconst value = 1;\n```",
     });
-    setCaret(scribe.editor, 0, 0);
-    const frame = scribe.editor.frame(80, 8);
+    setCaret(flowEditor.editor, 0, 0);
+    const frame = flowEditor.editor.frame(80, 8);
     const codeBlockRow = frame.rows.find((row) =>
       row.cells.some((cell) => cell.style.role?.startsWith("codeSyntax."))
     );
@@ -132,7 +132,7 @@ describe("Markdown presentation", () => {
     expect(codeBlockRow?.cells.every((cell) =>
       cell.style.backgroundRole === "markdownCode"
     )).toBe(true);
-    scribe.destroy();
+    flowEditor.destroy();
   });
 
   it("keeps active code and math source rows on the code background", () => {
@@ -140,9 +140,9 @@ describe("Markdown presentation", () => {
       "```python\n\ndef X(): pass\n```",
       "$$\n\n\\frac{a}{b} = c\n$$",
     ]) {
-      const scribe = boot({ content });
-      setCaret(scribe.editor, 2, 0);
-      const rows = scribe.editor.frame(80, 6).rows.slice(0, 4);
+      const flowEditor = boot({ content });
+      setCaret(flowEditor.editor, 2, 0);
+      const rows = flowEditor.editor.frame(80, 6).rows.slice(0, 4);
 
       expect(rows.map((row) => row.backgroundRole)).toEqual([
         "markdownCode",
@@ -162,16 +162,16 @@ describe("Markdown presentation", () => {
         cell.style.backgroundRole === "markdownCode"
       )).toBe(true);
       expect(rows[3]?.cells[0]?.style.role).toBe("markdownCodeMarkup");
-      scribe.destroy();
+      flowEditor.destroy();
     }
   });
 
   it("styles inline math like code and protects math blocks from inline markup", () => {
     const content = "Inline $E = mc^2$ math\n\n$$\n**literal**\n$$";
-    const scribe = boot({ content });
-    setCaret(scribe.editor, 4, 2);
+    const flowEditor = boot({ content });
+    setCaret(flowEditor.editor, 4, 2);
 
-    const decorations = scribe.editor.output().decorations;
+    const decorations = flowEditor.editor.output().decorations;
     const inlineOpen = content.indexOf("$E");
     const inlineClose = content.indexOf("$", inlineOpen + 1);
     expect(presentation(decorations)).toEqual(expect.arrayContaining([
@@ -189,15 +189,15 @@ describe("Markdown presentation", () => {
       decoration.style.role === "markdownStrong" &&
       decoration.from >= content.indexOf("**literal**")
     )).toBe(false);
-    scribe.destroy();
+    flowEditor.destroy();
   });
 
   it("does not produce overlapping concealment and replacements", () => {
-    const scribe = boot({
+    const flowEditor = boot({
       content: "# **Heading**\n- *item*\n![cover](cover.png)\n[link](url)",
     });
-    setCaret(scribe.editor, 3, 11);
-    const ranges = presentation(scribe.editor.output().decorations)
+    setCaret(flowEditor.editor, 3, 11);
+    const ranges = presentation(flowEditor.editor.output().decorations)
       .map((decoration) => ({ from: decoration.from, to: decoration.to }))
       .sort((a, b) => a.from - b.from || a.to - b.to);
 
@@ -209,10 +209,10 @@ describe("Markdown presentation", () => {
 
   it("does not decorate Markdown-looking text inside fenced code", () => {
     const content = "```md\n**literal** [link](url)\n```\nplain";
-    const scribe = boot({ content });
-    setCaret(scribe.editor, 3, 5);
+    const flowEditor = boot({ content });
+    setCaret(flowEditor.editor, 3, 5);
 
-    const decorations = scribe.editor.output().decorations;
+    const decorations = flowEditor.editor.output().decorations;
     const presentationRanges = presentation(decorations);
     expect(presentationRanges).toHaveLength(2);
     expect(presentationRanges.map((decoration) =>

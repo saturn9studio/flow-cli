@@ -39,6 +39,8 @@
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "build": "npm run clean && tsc -p tsconfig.json",
+    "build:standalone": "npm run build && node scripts/build-standalone.mjs",
+    "package:standalone": "npm run build:standalone && node scripts/package-standalone.mjs",
     "start": "npm run build && node dist/app/cli.js",
     "test": "vitest run",
     "verify": "npm run clean && npm run test && npm run build"
@@ -51,6 +53,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.1",
+    "esbuild": "^0.28.1",
+    "postject": "^1.0.0-alpha.6",
     "typescript": "^5.6.3",
     "vitest": "^2.0.0"
   }
