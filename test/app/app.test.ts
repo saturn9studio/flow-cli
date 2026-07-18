@@ -1197,6 +1197,67 @@ describe("FlowCLI application surface", () => {
     app.destroy();
   });
 
+  it("resets document-derived editor state when opening a file", async () => {
+    const files = new MemoryFileService({
+      "/first.md": "one two",
+      "/second.md": "alpha beta gamma",
+    });
+    const app = new FlowCliApp(
+      await openDocumentSession(files, "/first.md"),
+      createTestPlatform(files),
+      defaultFlowCliSettings,
+    );
+
+    expect(frameText(app)).toContain("2 words");
+    app.handleInput({ kind: "text", text: "Edited " }, viewport);
+    app.handleInput({ kind: "key", key: "F10" }, viewport);
+    app.handleInput({ kind: "key", key: "ArrowRight" }, viewport);
+    const undoRowBeforeOpen = app.frame(viewport.width, viewport.height).rows
+      .find((row) => row.cells.map((cell) => cell.text).join("").includes("Undo"));
+    expect(undoRowBeforeOpen?.cells.some(
+      (cell) => cell.style.role === "flowMenuDisabled",
+    )).toBe(false);
+
+    app.handleInput({ kind: "key", key: "Escape" }, viewport);
+    app.showOpen();
+    await app.whenIdle();
+    const browserFrame = app.frame(viewport.width, viewport.height);
+    const browserRow = browserFrame.rows.findIndex((row) => {
+      const text = row.cells.map((cell) => cell.text).join("");
+      return text.includes("first.md") && text.includes("second.md");
+    });
+    const secondColumn = browserFrame.rows[browserRow]?.cells
+      .map((cell) => cell.text).join("").indexOf("second.md") ?? -1;
+    app.handleInput({
+      kind: "mouse",
+      action: "press",
+      button: "left",
+      row: browserRow,
+      column: secondColumn,
+    }, viewport);
+    await app.whenIdle();
+
+    expect(app.document.path).toBe("/second.md");
+    expect(app.document.content).toBe("alpha beta gamma");
+    expect(frameText(app)).toContain("3 words");
+    expect(frameText(app)).not.toContain("[3 words]");
+    app.handleInput({ kind: "key", key: "z", ctrl: true }, viewport);
+    expect(app.document.content).toBe("alpha beta gamma");
+
+    app.handleInput({ kind: "key", key: "F10" }, viewport);
+    app.handleInput({ kind: "key", key: "ArrowRight" }, viewport);
+    const menuFrame = app.frame(viewport.width, viewport.height);
+    for (const label of ["Undo", "Redo"]) {
+      const row = menuFrame.rows.find((menuRow) =>
+        menuRow.cells.map((cell) => cell.text).join("").includes(label)
+      );
+      expect(row?.cells.some(
+        (cell) => cell.style.role === "flowMenuDisabled",
+      )).toBe(true);
+    }
+    app.destroy();
+  });
+
   it("opens, creates, and saves documents from product commands", async () => {
     const files = new MemoryFileService({
       "/first.md": "First",

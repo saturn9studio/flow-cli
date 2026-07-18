@@ -141,10 +141,7 @@ export class TerminalEditor {
     this.readOnly = options.readOnly ?? false;
     const initial = this.snapshot();
     this.assertUniquePluginIds(options.plugins ?? []);
-    this.plugins = (options.plugins ?? []).map((plugin) => ({
-      plugin,
-      state: plugin.init(initial),
-    }));
+    this.plugins = this.createPluginSlots(options.plugins ?? [], initial);
   }
 
   snapshot(): EditorStateSnapshot {
@@ -211,7 +208,16 @@ export class TerminalEditor {
     this.history.reset();
     this.scrollTop = 0;
     this.revealCaretPending = true;
+    this.desiredColumn = null;
+    this.mouseSelecting = false;
+    this.focusedWidget = null;
     this.revision += 1;
+    this.plugins = this.createPluginSlots(
+      this.plugins.map((slot) => slot.plugin),
+      this.snapshot(),
+    );
+    this.layoutCache = null;
+    this.outputCache = null;
     this.notifyUpdate();
   }
 
@@ -1066,6 +1072,16 @@ export class TerminalEditor {
       }
       ids.add(plugin.id);
     }
+  }
+
+  private createPluginSlots(
+    plugins: readonly EditorPlugin<unknown>[],
+    snapshot: EditorStateSnapshot,
+  ): PluginSlot[] {
+    return plugins.map((plugin) => ({
+      plugin,
+      state: plugin.init(snapshot),
+    }));
   }
 
   private setFocusedWidget(key: WidgetKey | null): void {
