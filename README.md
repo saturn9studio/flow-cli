@@ -28,16 +28,16 @@ incremental ANSI rendering are all implemented for the terminal.
 
 ## Install
 
-On macOS and Linux, install with Homebrew:
+On macOS and Linux, install the standalone binary with Homebrew:
 
 ```bash
 brew install saturn9studio/flow-cli/flow-cli
 ```
 
-On Windows, install with WinGet:
+On any platform with Node.js, install with npm:
 
-```powershell
-winget install --id Saturn9.FlowCLI --exact
+```bash
+npm install -g @saturn9/flow-cli
 ```
 
 Then open or create a Markdown document:
