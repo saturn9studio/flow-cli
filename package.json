@@ -1,6 +1,6 @@
 {
   "name": "@saturn9/flow-cli",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A keyboard-first Markdown editor for the terminal",
   "license": "MIT",
   "author": "Saturn9 LLC",

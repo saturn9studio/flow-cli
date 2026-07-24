@@ -4,8 +4,7 @@ import { NodeTerminalHost } from "../engine/node.js";
 import { createFlowCliApp } from "./app.js";
 import { helpText, parseArguments } from "./args.js";
 import { createNodePlatform } from "./platform/node.js";
-
-const version = process.env.FLOW_CLI_VERSION ?? "0.1.0";
+import { flowCliVersion } from "./version.js";
 
 const main = async (): Promise<void> => {
   const arguments_ = parseArguments(process.argv.slice(2));
@@ -14,7 +13,7 @@ const main = async (): Promise<void> => {
     return;
   }
   if (arguments_.action === "version") {
-    process.stdout.write(`${version}\n`);
+    process.stdout.write(`${flowCliVersion}\n`);
     return;
   }
 
