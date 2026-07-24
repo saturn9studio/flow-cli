@@ -41,6 +41,7 @@ import {
   ExternalDocumentChangeError,
   openDocumentSession,
 } from "./documents/session.js";
+import { flowCliVersion } from "./version.js";
 import type {
   DirectoryEntry,
   FlowCliPlatform,
@@ -2160,7 +2161,7 @@ export class FlowCliApp implements TerminalSurface {
           ),
         },
         {
-          cells: rowCells(" Version 0.1.0", width, "flowOverlay"),
+          cells: rowCells(` Version ${flowCliVersion}`, width, "flowOverlay"),
         },
         positionedRow(
           { cells: rowCells(` ${flowCliWebsite}`, width, "flowOverlay") },

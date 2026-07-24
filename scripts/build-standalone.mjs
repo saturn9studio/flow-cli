@@ -9,7 +9,6 @@ import { build } from "esbuild";
 
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const packageJson = require(join(root, "package.json"));
 const standaloneDir = join(root, "dist", "standalone");
 const workDir = join(standaloneDir, "work");
 const bundlePath = join(workDir, "flow-cli.cjs");
@@ -48,9 +47,6 @@ await build({
   platform: "node",
   target: "node22",
   format: "cjs",
-  define: {
-    "process.env.FLOW_CLI_VERSION": JSON.stringify(packageJson.version),
-  },
 });
 
 await writeFile(
